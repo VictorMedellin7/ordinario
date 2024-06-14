@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Ordinario</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"
+        integrity="sha512-uaz5GpnQoE6t5echKlX8P52czvsIGgLPcvlzfvRubLZ1Hp8JemUDnbUiAahbVtPb+jUVrNETuXvAhDDF/N3M4w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body {
+            background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        canvas {
+            border: 2px solid black;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 35vw;
+            height: 35vh;
+        }
+
+        .reloj-container {
+            display: flex;
+            justify-content: space-between;
+            width: 90vw;
+            position: absolute;
+            top: 5vh;
+            left: 5vw;
+        }
+
+        .reloj-nombre {
+            text-align: center;
+            font-size: 2.5vh;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+            position: absolute;
+        }
+
+        .reloj-nombre:nth-child(1) {
+            top: 20vh;
+            left: 15vw;
+        }
+
+        .reloj-nombre:nth-child(2) {
+            top: 20vh;
+            left: 40vw;
+        }
+
+        .reloj-nombre:nth-child(3) {
+            top: 20vh;
+            left: 65vw;
+        }
+
+        #timeInput {
+            width: 120px;
+            padding: 8px;
+            border-color: rgb(0, 0, 0);
+            border-radius: 20px;
+            font-size: 16px;
+            background-color: rgb(229, 196, 134);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            outline: none;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #timeInput:hover {
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        #timeInput:focus {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="reloj-container">
+        <div class="reloj-nombre">Madrid</div>
+        <div class="reloj-nombre">New York</div>
+        <div class="reloj-nombre">Buenos Aires</div>
+    </div>
+    <input type="time" id="timeInput" style="position: absolute; top: 80vh; left: 45vw;">
+    <script>
+        let hora;
+        let minuto;
+        let segundo;
+
+        let intervaloReloj;
+
+        let horaSeteada = false;
+
+        function setup() {
+            createCanvas(1200, 400);
+            angleMode(DEGREES);
+        }
+
+        function draw() {
+            background(184, 154, 81);
+            translate(200, height / 2);
+            if (horaSeteada) {
+                dibujarReloj(0, 0);
+                translate(400, 0);
+                dibujarRelojDDA(0, 0);
+                translate(400, 0);
+                dibujarRelojBresenham(0, 0);
+            }
+        }
+
+        function dibujarManecillas(x, y) {
+            let centroX = x;
+            let centroY = y;
+
+            let segundoX = centroX + 100 * cos(map(segundo, 0, 60, -90, 270));
+            let segundoY = centroY + 100 * sin(map(segundo, 0, 60, -90, 270));
+            drawLine(centroX, centroY, segundoX, segundoY, color(255, 0, 0));
+
+            let minutoX = centroX + 90 * cos(map(minuto, 0, 60, -90, 270));
+            let minutoY = centroY + 90 * sin(map(minuto, 0, 60, -90, 270));
+            drawLine(centroX, centroY, minutoX, minutoY, color(0, 255, 0));
+
+            let horaX = centroX + 70 * cos(map(hora % 12, 0, 12, -90, 270) + map(minuto, 0, 60, 0, 30));
+            let horaY = centroY + 70 * sin(map(hora % 12, 0, 12, -90, 270) + map(minuto, 0, 60, 0, 30));
+            drawLine(centroX, centroY, horaX, horaY, color(0, 0, 255));
+        }
+
+        function drawLine(x1, y1, x2, y2, color) {
+            stroke(color);
+            strokeWeight(4);
+            line(x1, y1, x2, y2);
+        }
+
+        function dibujarReloj(x, y) {
+            noFill();
+            stroke(0);
+            strokeWeight(4);
+            ellipse(x, y, 300);
+
+            textSize(25);
+            textAlign(CENTER, CENTER);
+            fill(255);
+            for (let i = 1; i <= 12; i++) {
+                let angulo = map(i, 1, 13, -60, 300);
+                let xPos = x + 150 * cos(angulo);
+                let yPos = y + 150 * sin(angulo);
+                text(i, xPos, yPos);
+            }
+
+            dibujarManecillas(x, y);
+        }
+
+        function dibujarRelojDDA(x, y) {
+            noFill();
+            stroke(0);
+            strokeWeight(4);
+            ellipse(x, y, 300);
+
+            textSize(25);
+            textAlign(CENTER, CENTER);
+            fill(255);
+            for (let i = 1; i <= 12; i++) {
+                let angulo = map(i, 1, 13, -60, 300);
+                let xPos = x + 150 * cos(angulo);
+                let yPos = y + 150 * sin(angulo);
+                text(i, xPos, yPos);
+            }
+
+            let horaDDA = (hora + 6) % 24;
+
+            let centroX = x;
+            let centroY = y;
+
+            let segundoX = centroX + 100 * cos(map(segundo, 0, 60, -90, 270));
+            let segundoY = centroY + 100 * sin(map(segundo, 0, 60, -90, 270));
+            drawLineDDA(centroX, centroY, segundoX, segundoY, color(255, 0, 0));
+
+            let minutoX = centroX + 90 * cos(map(minuto, 0, 60, -90, 270));
+            let minutoY = centroY + 90 * sin(map(minuto, 0, 60, -90, 270));
+            drawLineDDA(centroX, centroY, minutoX, minutoY, color(0, 255, 0));
+
+            let horaX = centroX + 70 * cos(map(horaDDA % 12, 0, 12, -90, 270) + map(minuto, 0, 60, 0, 30));
+            let horaY = centroY + 70 * sin(map(horaDDA % 12, 0, 12, -90, 270) + map(minuto, 0, 60, 0, 30));
+            drawLineDDA(centroX, centroY, horaX, horaY, color(0, 0, 255));
+        }
+
+        function drawLineDDA(x1, y1, x2, y2, color) {
+            stroke(color);
+            strokeWeight(4);
+            let dx = x2 - x1;
+            let dy = y2 - y1;
+            let steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+            let xIncrement = dx / steps;
+            let yIncrement = dy / steps;
+
+            let x = x1;
+            let y = y1;
+
+            for (let i = 0; i <= steps; i++) {
+                point(x, y);
+                x += xIncrement;
+                y += yIncrement;
+            }
+        }
+
+        function dibujarRelojBresenham(x, y) {
+            noFill();
+            stroke(0);
+            strokeWeight(4);
+            ellipse(x, y, 300);
+
+            textSize(25);
+            textAlign(CENTER, CENTER);
+            fill(255);
+            for (let i = 1; i <= 12; i++) {
+                let angulo = map(i, 1, 13, -60, 300);
+                let xPos = x + 150 * cos(angulo);
+                let yPos = y + 150 * sin(angulo);
+                text(i, xPos, yPos);
+            }
+
+            let horaBresenham = (hora + 5) % 24;
+
+            let centroX = x;
+            let centroY = y;
+
+            let segundoX = centroX + 100 * cos(map(segundo, 0, 60, -90, 270));
+            let segundoY = centroY + 100 * sin(map(segundo, 0, 60, -90, 270));
+            drawLineBresenham(centroX, centroY, segundoX, segundoY, color(255, 0, 0));
+
+            let minutoX = centroX + 90 * cos(map(minuto, 0, 60, -90, 270));
+            let minutoY = centroY + 90 * sin(map(minuto, 0, 60, -90, 270));
+            drawLineBresenham(centroX, centroY, minutoX, minutoY, color(0, 255, 0));
+
+            let horaX = centroX + 70 * cos(map(horaBresenham % 12, 0, 12, -90, 270) + map(minuto, 0, 60, 0, 30));
+            let horaY = centroY + 70 * sin(map(horaBresenham % 12, 0, 12, -90, 270) + map(minuto, 0, 60, 0, 30));
+            drawLineBresenham(centroX, centroY, horaX, horaY, color(0, 0, 255));
+        }
+
+        function drawLineBresenham(x1, y1, x2, y2, color) {
+            stroke(color);
+            strokeWeight(4);
+            let dx = x2 - x1;
+            let dy = y2 - y1;
+            let steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+            let xIncrement = dx / steps;
+            let yIncrement = dy / steps;
+
+            let x = x1;
+            let y = y1;
+
+            for (let i = 0; i <= steps; i++) {
+                point(x, y);
+                x += xIncrement;
+                y += yIncrement;
+            }
+        }
+
+        function iniciarReloj() {
+            if (!horaSeteada) return;
+            clearInterval(intervaloReloj);
+            intervaloReloj = setInterval(actualizarHora, 1000);
+        }
+
+        function actualizarHora() {
+            segundo++;
+            if (segundo >= 60) {
+                segundo = 0;
+                minuto++;
+                if (minuto >= 60) {
+                    minuto = 0;
+                    hora++;
+                    if (hora >= 24) {
+                        hora = 0;
+                    }
+                }
+            }
+        }
+
+        function obtenerHoraDesdeInput() {
+            let timeInput = document.getElementById('timeInput').value;
+            let parts = timeInput.split(':');
+            hora = int(parts[0]);
+            minuto = int(parts[1]);
+            segundo = 0;
+            horaSeteada = true;
+            iniciarReloj();
+        }
+
+        document.getElementById('timeInput').addEventListener('input', function () {
+            obtenerHoraDesdeInput();
+        });
+
+    </script>
+</body>
+</html>
